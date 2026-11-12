@@ -62,6 +62,8 @@ const ADD_VERBS = new Set(["add", "get", "order", "grab", "have", "want", "like"
 
 export function normalizeTranscript(raw: string): string {
   return raw
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[’]/g, "'")
     .replace(/[^a-z0-9%'\s]/g, " ")
@@ -98,7 +100,7 @@ function drinkAt(
   if (word === "cappuccino" || word === "cappuccinos") {
     return { type: "cappuccino", consumed: cursor - index + 1, iced };
   }
-  if (word === "caffe" || word === "cafe") {
+  if (word === "caffe" || word === "cafe" || word === "caff") {
     const extra = tokens[cursor + 1] === "latte" || tokens[cursor + 1] === "lattes" ? 1 : 0;
     return { type: "latte", consumed: cursor - index + 1 + extra, iced };
   }
@@ -185,6 +187,8 @@ function readAdd(tokens: string[], index: number): Add | null {
 
   const from = (cursor: number, count: number): Add | null => {
     if (tokens[cursor] === "more" || tokens[cursor] === "another") cursor += 1;
+    // "a hot caffe latte": hot is the default temperature, so it only needs skipping.
+    if ((tokens[cursor] === "hot" || tokens[cursor] === "warm") && drinkAt(tokens, cursor + 1)) cursor += 1;
     const drink = drinkAt(tokens, cursor);
     if (!drink) return null;
     return { type: drink.type, count, iced: drink.iced, next: cursor + drink.consumed };

@@ -4,6 +4,7 @@ import CheckoutModal from "@/components/checkout-modal";
 import DrinkCard from "@/components/drink-card";
 import OrderConfetti from "@/components/order-confetti";
 import StartScreen from "@/components/start-screen";
+import TotalCallout from "@/components/total-callout";
 import TranscriptBar from "@/components/transcript-bar";
 import { useSpeech } from "@/components/use-speech";
 import { sttLabel } from "@/lib/assemblyai-transcript";
@@ -19,6 +20,7 @@ import {
 import { DEMO_END, GOLD_WINDOW_SECONDS, latencyAt, speakingAt, transcriptAt } from "@/lib/demo";
 import { clearInterpret, IDLE_LOOP, noteTranscript, settleInterpret, shouldApplyInterpret, type InterpretLoop } from "@/lib/live-order";
 import { meterShowsStart } from "@/lib/mic-permission";
+import { totalAskedAt } from "@/lib/checkout-cues";
 import { parseOrder, tokenize } from "@/lib/parser";
 import { clearControlVisible, startGateVisible } from "@/lib/start-gate";
 import type { Drink, OptionField } from "@/lib/types";
@@ -50,7 +52,19 @@ function orderAt(history: HistoryEntry[], time: number): Drink[] {
     if (entry.t <= time) found = entry.drinks;
     else break;
   }
-  return found;
+  // A drink added inside the window is compared with its first version,
+  // so an edit right after it appears still lights up straight away.
+  const seen = new Set(found.map((drink) => drink.id));
+  const baseline = [...found];
+  for (const entry of history) {
+    if (entry.t <= time) continue;
+    for (const drink of entry.drinks) {
+      if (seen.has(drink.id)) continue;
+      seen.add(drink.id);
+      baseline.push(drink);
+    }
+  }
+  return baseline;
 }
 
 function adoptIds(previous: Drink[], next: Drink[]): Drink[] {
@@ -140,8 +154,9 @@ export default function OrderApp() {
   const transcript = demoMode ? transcriptAt(demoNow) : heard;
   const parsed = useMemo(() => parseOrder(transcript), [transcript]);
   const drinks = useMemo(() => (demoMode ? parsed : (liveDrinks ?? [])), [demoMode, parsed, liveDrinks]);
-  const view = applyCheckout(checkout, transcript, parsed.length);
-  const receiptDrinks = view.phase === "placed" && placedDrinks ? placedDrinks : parsed;
+  // The receipt shows the same drinks as the cards (Jev live, parser in demo mode).
+  const view = applyCheckout(checkout, transcript, drinks.length);
+  const receiptDrinks = view.phase === "placed" && placedDrinks ? placedDrinks : drinks;
 
   const resetCheckout = useCallback(() => {
     phaseRef.current = "shopping";
@@ -306,14 +321,14 @@ export default function OrderApp() {
   }, [clearOrder, transcript, view.phase]);
 
   const placeFromClick = useCallback(() => {
-    if (view.phase !== "review" || parsed.length === 0) return;
-    setPlacedDrinks(parsed);
+    if (view.phase !== "review" || drinks.length === 0) return;
+    setPlacedDrinks(drinks);
     setCheckout({
       ...view,
       phase: "placed",
       orderNo: view.orderNo ?? orderNumberFrom(`${transcript}|click`),
     });
-  }, [parsed, transcript, view]);
+  }, [drinks, transcript, view]);
 
   const toggleMic = useCallback(() => {
     if (listening) {
@@ -324,8 +339,11 @@ export default function OrderApp() {
   }, [begin, listening, stopMic]);
 
   if (view !== checkout) setCheckout(view);
-  if (view.phase === "placed" && placedDrinks == null) setPlacedDrinks(parsed);
+  if (view.phase === "placed" && placedDrinks == null) setPlacedDrinks(drinks);
   if (view.phase !== "placed" && placedDrinks != null) setPlacedDrinks(null);
+
+  const totalAsk = totalAskedAt(tokenize(transcript));
+  const showTotal = totalAsk >= 0 && view.phase === "shopping" && !gate && drinks.length > 0;
 
   const latency = demoMode ? latencyAt(demoNow) : heard ? liveLatency : null;
   const speaking = demoMode ? speakingAt(demoNow) : micSpeaking;
@@ -380,7 +398,7 @@ export default function OrderApp() {
           )}
         </AnimatePresence>
         <LayoutGroup>
-          <motion.div layout className="flex max-w-full items-end justify-center gap-[clamp(48px,11vw,240px)] overflow-x-auto px-12">
+          <motion.div layout className="flex max-w-full items-end justify-center gap-[clamp(48px,11vw,240px)] overflow-x-auto px-12 py-[32px]">
             <AnimatePresence mode="popLayout">
               {drinks.map((drink) => (
                 <motion.div
@@ -402,6 +420,8 @@ export default function OrderApp() {
           </motion.div>
         </LayoutGroup>
       </div>
+
+      {showTotal && <TotalCallout drinks={drinks} askKey={String(totalAsk)} />}
 
       <TranscriptBar
         transcript={transcript}

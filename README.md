@@ -1,11 +1,9 @@
 <!-- DEMO_VIDEO_ATTACHMENT -->
 
-https://github.com/user-attachments/assets/cf31dfa1-0951-4748-937b-ca4db8c73bf5
-
-
+https://github.com/user-attachments/assets/4b8193de-36fe-45eb-a006-0181a5ea76f6
 
 <p align="center">
-  <a href="https://github.com/bvsbharat/FlashAgentic/blob/main/demo/flash-agentic-demo.mp4"><strong>Watch the full demo (50s, with audio)</strong></a>
+  <a href="https://github.com/bvsbharat/FlashAgentic/blob/main/demo/flash-agentic-demo.mp4"><strong>Watch the full demo (60s, with audio)</strong></a>
 </p>
 
 <p align="center">
@@ -42,7 +40,7 @@ The microphone is audio only. Nothing asks for a camera.
 | --- | --- |
 | Live speech to text | AssemblyAI streaming (`universal-3-6-pro`). If the token or the socket fails, Chrome’s Web Speech API takes over. The pill labels the engine **AssemblyAI** or **Chrome**. |
 | Real-time cart | Every interim transcript is posted to `/api/interpret`. One request is in flight; the newest sentence waits and goes out as soon as the current one returns. |
-| Mid-sentence corrections | “make that a venti” retargets the drink in focus. “scratch the cappuccino” removes it. The same parser understands “the small one”, “one of the lattes”, and “the other one”. A changed field flashes gold for 1.35s. |
+| Mid-sentence corrections | “make that a venti” retargets the drink in focus. “scratch the cappuccino” removes it. The same parser understands “the small one”, “one of the lattes”, and “the other one”. A changed field flashes gold for 1.9s. |
 | Voice checkout and confirm | “let me check out” opens the ticket. “place the order”, “place it”, or “confirm” places it. “go back” or “never mind” returns to the counter. |
 | Receipt with confetti | The ticket lists each drink, a subtotal, 8.5% tax, and a total. The total is simulated and nothing is charged. Placing the order shows a four-digit ticket number and confetti. Reduced motion skips the burst. |
 | Latency badge | The transcript pill prints the decision time in milliseconds. Live mode times the `/api/interpret` round trip. Demo playback uses the scripted per-word times. |
@@ -55,32 +53,16 @@ The microphone is audio only. Nothing asks for a camera.
 
 ## Demo walkthrough
 
-Press **Play demo** (or `D`) and the page replays this script locally. Demo playback does not call the network. It runs the deterministic parser, so the cart matches the lines below with or without API keys.
+The recording at the top is a live order. One latte is edited in place, and each change flashes gold on that field:
 
-A new drink starts as grande, 2 shots, whole milk, and hot. “Matcha” is a matcha latte. “Latte” is a caffè latte. Small is tall. Large is venti.
+1. The latte moves from Tall to Venti.
+2. It turns iced.
+3. It gains an extra shot.
+4. The milk switches to oat.
 
-| Time | Spoken line | Cart |
-| --- | --- | --- |
-| 1.65s | “can i get a matcha” | Hot matcha latte, grande, 2 shots, whole milk |
-| 3.55s | “let's make it iced” | That matcha turns iced |
-| 5.35s | “with oat milk” | Oat milk on the matcha |
-| 6.70s | “and can we add one cappuccino” | Hot cappuccino, grande, 2 shots, whole |
-| 10.05s | “and one latte” | Hot caffè latte beside it |
-| 12.20s | “actually can we add one more latte” | A second hot latte |
-| 14.55s | “for one of the lattes can we make it large” | The latest latte becomes venti |
-| 16.55s | “and then the other one small” | The earlier latte becomes tall |
-| 18.70s | “and then for the small one can we do three shots” | The tall latte goes to 3 shots |
-| 21.90s | “with oat milk” | Oat milk on the tall latte |
-| 26.10s | “and let's make that one iced actually” | The tall latte turns iced. The venti latte stays hot |
-| 29.80s | “awesome actually let's get rid of the cappuccino” | Cappuccino leaves. Three drinks remain, in order |
-| 35.40s | “let me check out” | Review opens: “Say place the order to confirm.” |
-| 40.80s | “place the order” | Ticket number, receipt, and confetti |
+Asking for the total brings up a **$14.21** callout. “Let me check out” opens the ticket, and “place the order” confirms it: the receipt, a ticket number, and confetti.
 
-The ticket at the end is:
-
-- Iced matcha latte, grande, 2 shots, oat
-- Iced caffè latte, tall, 3 shots, oat
-- Caffè latte, venti, 2 shots, whole, hot
+**Play demo** (or `D`) still replays a scripted order through the local parser, with no network call. A new drink starts as grande, 2 shots, whole milk, and hot. “Matcha” is a matcha latte. “Latte” is a caffè latte. Small is tall. Large is venti. “What’s my total?” shows the same callout and does not add a drink.
 
 ## Architecture
 
@@ -145,7 +127,7 @@ npm run build
 
 ```
 app/                  page, layout, global CSS
-components/           counter, drink cards, transcript pill, start screen, checkout, confetti
+components/           counter, drink cards, total callout, transcript pill, start screen, checkout, confetti
 lib/parser.ts         spoken order to drinks
 lib/checkout.ts       review, confirm, receipt, ticket number
 lib/checkout-cues.ts  phrases that open, confirm, or cancel checkout

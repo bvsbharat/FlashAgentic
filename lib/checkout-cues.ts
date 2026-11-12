@@ -168,3 +168,33 @@ export function checkoutCuesFromTokens(tokens: string[]): CheckoutCue[] {
   }
   return cues;
 }
+
+/** Asking for the running total. Shows a total callout; never changes the order or checkout. */
+const TOTAL_PHRASES: readonly (readonly string[])[] = [
+  ["whats", "my", "total"],
+  ["what", "is", "my", "total"],
+  ["whats", "the", "total"],
+  ["what", "is", "the", "total"],
+  ["whats", "it", "come", "to"],
+  ["show", "me", "the", "total"],
+  ["show", "me", "my", "total"],
+  ["how", "much", "is", "that"],
+  ["how", "much", "is", "it"],
+  ["how", "much", "do", "i", "owe"],
+  ["my", "total"],
+  ["the", "total"],
+];
+
+/** Index just past the last total question in the transcript, or -1 when none was asked. */
+export function totalAskedAt(tokens: string[]): number {
+  let found = -1;
+  for (let index = 0; index < tokens.length; index += 1) {
+    for (const phrase of TOTAL_PHRASES) {
+      if (startsWithPhrase(tokens, index, phrase)) {
+        found = index + phrase.length;
+        break;
+      }
+    }
+  }
+  return found;
+}

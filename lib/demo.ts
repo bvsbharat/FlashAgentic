@@ -62,4 +62,4 @@ export function speakingAt(seconds: number): boolean {
 }
 
 /** How long a changed option stays gold before it settles. Tuned to the frames. */
-export const GOLD_WINDOW_SECONDS = 1.35;
+export const GOLD_WINDOW_SECONDS = 1.9;
