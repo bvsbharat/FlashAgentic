@@ -1,0 +1,416 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background: #1d332c;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-inter), "SF Pro Display", "Segoe UI", sans-serif;
+}
+
+@layer base {
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.transcript-pill {
+  width: min(92vw, 1520px);
+  height: clamp(72px, 10.9vh, 158px);
+}
+
+.viz {
+  width: clamp(78px, 8.35vh, 124px);
+  height: clamp(78px, 8.35vh, 124px);
+  border-radius: 999px;
+  background: #f3f1ea;
+}
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  background: #2fbf6e;
+  animation: caret 1.05s steps(1) infinite;
+}
+
+@keyframes caret {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.bar-live {
+  height: 32%;
+  animation: bar 0.72s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes bar {
+  0%,
+  100% {
+    height: 64%;
+  }
+  50% {
+    height: calc(52% + var(--bar) * 46%);
+  }
+}
+
+.sketch-start {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: clamp(156px, 18vh, 188px);
+  height: clamp(156px, 18vh, 188px);
+  margin-top: 1.75rem;
+  color: #f4efe6;
+  border-radius: 999px;
+  pointer-events: auto;
+  touch-action: manipulation;
+  transition: transform 180ms ease;
+}
+
+.sketch-start::before {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border-radius: 999px;
+  background: rgba(244, 239, 230, 0.16);
+  transition: background 160ms ease;
+}
+
+.sketch-start span {
+  position: relative;
+  z-index: 2;
+  color: #f4efe6;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.sketch-svg {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sketch-stroke {
+  fill: none;
+  stroke: #f4f0e6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sketch-back {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+
+.sketch-back path {
+  stroke: #d5ddd4;
+  stroke-width: 1.6;
+  opacity: 0.8;
+}
+
+.sketch-front {
+  stroke: #f7f4ec;
+  stroke-width: 2.45;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 0;
+}
+
+.sketch-start:hover,
+.sketch-start:focus-visible {
+  transform: scale(1.06);
+}
+
+.sketch-start:hover::before,
+.sketch-start:focus-visible::before {
+  background: rgba(243, 241, 234, 0.2);
+}
+
+.sketch-start:active::before,
+.sketch-start.is-arming::before {
+  background: rgba(196, 165, 116, 0.34);
+}
+
+.sketch-start:hover .sketch-front,
+.sketch-start:focus-visible .sketch-front,
+.sketch-start.is-arming .sketch-front {
+  animation: sketch-redraw 0.9s ease;
+}
+
+.sketch-start:hover .sketch-back,
+.sketch-start:focus-visible .sketch-back {
+  animation: sketch-wobble 1.4s ease-in-out;
+}
+
+.sketch-start:focus-visible {
+  outline: 2px solid #c4a574;
+  outline-offset: 8px;
+}
+
+.sketch-start:active {
+  transform: scale(0.98);
+}
+
+@keyframes sketch-redraw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sketch-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(2.4deg) scale(1.015);
+  }
+}
+
+.start-floats {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.float-cup {
+  position: absolute;
+  width: var(--size);
+  height: calc(var(--size) * 1.18);
+  color: #e7e1d4;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: center;
+  animation:
+    float-in 2.1s ease-out both,
+    float-bob var(--dur) ease-in-out infinite;
+  animation-delay: 0s, calc(2.1s + var(--delay));
+}
+
+.cup-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.cup-steam {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  width: 42px;
+  height: 30px;
+  margin-left: -21px;
+  fill: none;
+  stroke: #f4f0e6;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: steam 2.8s ease-in-out infinite;
+}
+
+.welcome-screen {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(90, 58, 36, 0.45), transparent 42%),
+    #14211c;
+}
+
+.welcome-glow {
+  position: absolute;
+  inset: -18%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 78%, rgba(62, 36, 22, 0.55), transparent 46%),
+    radial-gradient(circle at 84% 18%, rgba(196, 165, 116, 0.16), transparent 38%),
+    radial-gradient(circle at 50% 46%, rgba(244, 239, 230, 0.05), transparent 32%);
+  animation: welcome-drift 18s ease-in-out infinite;
+}
+
+.demo-link {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 230, 0.38);
+  transition: color 160ms ease;
+}
+
+.demo-link:hover,
+.demo-link:focus-visible {
+  color: #f4efe6;
+}
+
+.demo-link:focus-visible {
+  outline: 2px solid #c4a574;
+  outline-offset: 4px;
+}
+
+.checkout-overlay {
+  background: rgba(8, 18, 15, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.checkout-panel {
+  animation: checkout-in 0.22s ease-out both;
+}
+
+.checkout-check {
+  animation: check-pop 0.45s ease both;
+}
+
+.checkout-check.is-calm {
+  animation: check-fade 0.6s ease both;
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--from-x), var(--from-y), 0) rotate(var(--tilt));
+  }
+  to {
+    opacity: var(--fade);
+    transform: translate3d(0, 0, 0) rotate(var(--tilt));
+  }
+}
+
+@keyframes float-bob {
+  0%,
+  100% {
+    opacity: var(--fade);
+    transform: translate3d(0, 0, 0) rotate(var(--tilt));
+  }
+  50% {
+    opacity: var(--fade);
+    transform: translate3d(var(--dx), var(--dy), 0) rotate(calc(var(--tilt) + var(--spin)));
+  }
+}
+
+@media (max-width: 1040px), (max-height: 740px) {
+  .start-floats {
+    display: none;
+  }
+}
+
+@keyframes steam {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(4px);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes welcome-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-2%, 1.4%, 0) scale(1.04);
+  }
+}
+
+@keyframes checkout-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes check-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-cup {
+    animation: none;
+    opacity: var(--fade);
+    transform: rotate(var(--tilt));
+  }
+
+  .cup-steam,
+  .welcome-glow,
+  .checkout-panel,
+  .checkout-check,
+  .checkout-check.is-calm {
+    animation: none;
+  }
+
+  .sketch-start,
+  .sketch-start:hover,
+  .sketch-start:focus-visible,
+  .sketch-start:active {
+    transition: none;
+    transform: none;
+  }
+
+  .sketch-front,
+  .sketch-back,
+  .sketch-start:hover .sketch-front,
+  .sketch-start:focus-visible .sketch-front,
+  .sketch-start:hover .sketch-back,
+  .sketch-start:focus-visible .sketch-back,
+  .sketch-start.is-arming .sketch-front {
+    animation: none;
+  }
+}

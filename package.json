@@ -1,0 +1,33 @@
+{
+  "name": "voice-coffee",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "tsx --test lib/parser.test.ts lib/checkout.test.ts lib/jev.test.ts lib/speech-session.test.ts lib/assemblyai.test.ts lib/start-gate.test.ts lib/mic-permission.test.ts lib/start-scene.test.ts"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "^0.7.0",
+    "assemblyai": "^4.42.1",
+    "framer-motion": "^14.11.1",
+    "next": "15.5.29",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.29",
+    "puppeteer-core": "^25.16.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
