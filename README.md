@@ -2,11 +2,7 @@
 
 https://github.com/user-attachments/assets/cf31dfa1-0951-4748-937b-ca4db8c73bf5
 
-<p align="center">
-  <a href="https://github.com/bvsbharat/FlashAgentic/blob/main/demo/flash-agentic-demo.mp4">
-    <img src="docs/demo.gif" alt="Flash Agentic voice ordering demo" width="900">
-  </a>
-</p>
+
 
 <p align="center">
   <a href="https://github.com/bvsbharat/FlashAgentic/blob/main/demo/flash-agentic-demo.mp4"><strong>Watch the full demo (50s, with audio)</strong></a>
