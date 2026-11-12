@@ -2,6 +2,10 @@
 
 A full-screen counter where a spoken order becomes drinks while the sentence is still going. Size, shots, milk, and temperature update in place, and drinks can be referred to the way a person would: “one of the lattes”, “the other one”, “the small one”, “that one”.
 
+## Demo video
+
+[flash-agentic-demo.mp4](demo/flash-agentic-demo.mp4)
+
 Speech-to-text prefers AssemblyAI real-time streaming, model `universal-3-6-pro`. The browser captures the microphone (audio only — no camera), downsamples it to 16 kHz mono 16-bit PCM in an AudioWorklet, and sends that PCM to `wss://streaming.assemblyai.com/v3/ws`. The API key stays on the server. `GET /api/assemblyai-token` uses `client.streaming.createTemporaryToken` from the `assemblyai` SDK (`GET https://streaming.assemblyai.com/v3/token`) and returns only a short-lived token. Partial turns show in the pill as you speak and are posted to `/api/interpret`; finalized turns are appended. If the socket drops or the session nears its cap, the page mints a new token and reconnects without dropping the words already heard.
 
 If `ASSEMBLYAI_API_KEY` is missing, the token request fails, or the socket errors, the page falls back to Chrome’s Web Speech API (`webkitSpeechRecognition`, `continuous` and `interimResults`, on-device when Chrome has a language pack). A small label in the pill reads **AssemblyAI** or **Chrome**. The decision label still reads **Jev** or **parser**.
