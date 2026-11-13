@@ -1,24 +1,29 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { GLASS_KINDS, START_GLASSES, glassesCoverCorners, glassStaysPeripheral } from "./start-scene";
+import { drinkImage } from "./types";
+import { HERO_CUPS, LANDING_TILES, heroCupsUseMenuArt, landingTilesAreDistinct } from "./start-scene";
 
-test("floating glasses ring every corner and both side edges", () => {
-  assert.equal(glassesCoverCorners(START_GLASSES), true);
-  assert.equal(START_GLASSES.some((glass) => glass.corner === "left"), true);
-  assert.equal(START_GLASSES.some((glass) => glass.corner === "right"), true);
-  assert.equal(new Set(START_GLASSES.map((glass) => glass.id)).size, START_GLASSES.length);
+test("landing tiles stay distinct", () => {
+  assert.equal(LANDING_TILES.length, 5);
+  assert.equal(landingTilesAreDistinct(LANDING_TILES), true);
 });
 
-test("every glass stays outside the title and Start button", () => {
-  for (const glass of START_GLASSES) {
-    assert.equal(glassStaysPeripheral(glass), true);
-    assert.ok(GLASS_KINDS.includes(glass.kind));
-    assert.ok(glass.size >= 64 && glass.size <= 120);
-    assert.ok(glass.fade > 0 && glass.fade <= 1);
-  }
+test("hero cups are the in-app menu photos", () => {
+  assert.equal(heroCupsUseMenuArt(HERO_CUPS), true);
+  assert.deepEqual(
+    new Set(HERO_CUPS.map((cup) => cup.image)),
+    new Set([
+      drinkImage("matcha", "Iced"),
+      drinkImage("matcha", "Hot"),
+      drinkImage("latte", "Iced"),
+      drinkImage("latte", "Hot"),
+      drinkImage("cappuccino", "Iced"),
+      drinkImage("cappuccino", "Hot"),
+    ]),
+  );
 });
 
-test("a glass parked in the middle is not peripheral", () => {
-  assert.equal(glassStaysPeripheral({ top: 46, left: 48 }), false);
-  assert.equal(glassStaysPeripheral({ top: 4, left: 48 }), true);
+test("a cropped landing render is not a hero cup", () => {
+  assert.equal(heroCupsUseMenuArt([{ id: "old", image: "/landing/hero-cup.webp" }]), false);
+  assert.equal(HERO_CUPS.some((cup) => cup.image.includes("hero-cup")), false);
 });

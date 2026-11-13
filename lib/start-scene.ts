@@ -1,53 +1,57 @@
 import { drinkImage, type DrinkType, type Temp } from "./types";
 
-export type StartGlass = {
+export type LandingTile = {
   id: string;
-  type: DrinkType;
-  temp: Temp;
-  /** Same product image the counter cards and the checkout receipt use. */
+  name: string;
   image: string;
-  corner: "top-left" | "top-right" | "bottom-left" | "bottom-right";
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-  size: number;
-  tilt: number;
-  dx: number;
-  dy: number;
-  spin: number;
-  fromX: number;
-  fromY: number;
-  dur: number;
-  delay: number;
-  fade: number;
-  steam?: boolean;
 };
 
-type GlassSeed = Omit<StartGlass, "image">;
-
-const SEEDS: readonly GlassSeed[] = [
-  { id: "tl", type: "matcha", temp: "Hot", steam: true, corner: "top-left", top: 14, left: 2.4, size: 118, tilt: -8, dx: 14, dy: 18, spin: 4, fromX: -48, fromY: -36, dur: 17, delay: 0.2, fade: 0.92 },
-  { id: "tr", type: "cappuccino", temp: "Iced", corner: "top-right", top: 5, right: 3.5, size: 124, tilt: 8, dx: -16, dy: 14, spin: -3, fromX: 52, fromY: -40, dur: 19, delay: 1.1, fade: 0.9 },
-  { id: "bl", type: "latte", temp: "Hot", steam: true, corner: "bottom-left", bottom: 5, left: 4, size: 136, tilt: 6, dx: 12, dy: -16, spin: 3, fromX: -44, fromY: 42, dur: 18, delay: 0.5, fade: 0.92 },
-  { id: "br", type: "cappuccino", temp: "Hot", steam: true, corner: "bottom-right", bottom: 4, right: 3.5, size: 124, tilt: -7, dx: -14, dy: -18, spin: -4, fromX: 46, fromY: 40, dur: 16, delay: 1.6, fade: 0.92 },
+/** Five cropped drinks under the hero actions, left to right. */
+export const LANDING_TILES: readonly LandingTile[] = [
+  { id: "latte", name: "Latte", image: "/landing/tile-1.webp" },
+  { id: "iced-latte", name: "Iced latte", image: "/landing/tile-2.webp" },
+  { id: "mocha", name: "Mocha", image: "/landing/tile-3.webp" },
+  { id: "cappuccino", name: "Cappuccino", image: "/landing/tile-4.webp" },
+  { id: "iced-matcha", name: "Iced matcha", image: "/landing/tile-5.webp" },
 ];
 
-/** Cups sit in the four corners, outside the title column. */
-export const START_GLASSES: readonly StartGlass[] = SEEDS.map((glass) => ({
-  ...glass,
-  image: drinkImage(glass.type, glass.temp),
+export type HeroCup = {
+  id: string;
+  label: string;
+  type: DrinkType;
+  temp: Temp;
+  /** Same product photo the counter cards and the checkout receipt use. */
+  image: string;
+};
+
+const HERO_SEEDS: readonly Omit<HeroCup, "image">[] = [
+  { id: "matcha-iced", label: "Matcha", type: "matcha", temp: "Iced" },
+  { id: "latte-hot", label: "Latte", type: "latte", temp: "Hot" },
+  { id: "cappuccino-iced", label: "Cappuccino", type: "cappuccino", temp: "Iced" },
+  { id: "matcha-hot", label: "Matcha", type: "matcha", temp: "Hot" },
+  { id: "latte-iced", label: "Latte", type: "latte", temp: "Iced" },
+  { id: "cappuccino-hot", label: "Cappuccino", type: "cappuccino", temp: "Hot" },
+];
+
+/** Hero slides. Every frame is an in-app drink photo, not the cropped landing render. */
+export const HERO_CUPS: readonly HeroCup[] = HERO_SEEDS.map((cup) => ({
+  ...cup,
+  image: drinkImage(cup.type, cup.temp),
 }));
 
-const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"] as const;
+export const HERO_BG = "/landing/hero-bg.webp";
+export const BRAND_LOGO = "/landing/logo.webp";
 
-export function glassesCoverCorners(glasses: readonly { corner: string }[]): boolean {
-  return CORNERS.every((corner) => glasses.some((glass) => glass.corner === corner));
+export function landingTilesAreDistinct(tiles: readonly Pick<LandingTile, "id" | "image">[]): boolean {
+  const ids = new Set(tiles.map((tile) => tile.id));
+  return ids.size === tiles.length && tiles.every((tile) => /\/landing\/tile-\d+\.webp$/.test(tile.image));
 }
 
-/** Anchor sits in the outer band, so it does not land on the title, hint, or Start button. */
-export function glassStaysPeripheral(glass: Pick<StartGlass, "top" | "bottom" | "left" | "right">): boolean {
-  const x = glass.left ?? (glass.right != null ? 100 - glass.right : 50);
-  const y = glass.top ?? (glass.bottom != null ? 100 - glass.bottom : 50);
-  return x <= 16 || x >= 84 || y <= 14 || y >= 86;
+export function heroCupsUseMenuArt(cups: readonly Pick<HeroCup, "id" | "image">[]): boolean {
+  const ids = new Set(cups.map((cup) => cup.id));
+  return (
+    cups.length > 0 &&
+    ids.size === cups.length &&
+    cups.every((cup) => /^\/drinks\/(matcha|latte|cappuccino)-(hot|iced)\.png$/.test(cup.image))
+  );
 }
