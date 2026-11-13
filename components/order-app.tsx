@@ -363,7 +363,7 @@ export default function OrderApp() {
           type="button"
           data-demo
           onClick={playDemo}
-          className="demo-link absolute top-[22px] left-[26px] z-50"
+          className={`demo-link absolute z-50 ${gate ? "hero-demo" : "top-[22px] left-[26px]"}`}
         >
           {playing ? "Replay demo" : "Play demo"}
         </button>

@@ -1,9 +1,11 @@
 "use client";
 
 import { micBlockMessage, type MicPermission } from "@/lib/mic-permission";
-import { START_GLASSES, type StartGlass } from "@/lib/start-scene";
+import { BRAND_LOGO, HERO_BG, HERO_CUPS, LANDING_TILES } from "@/lib/start-scene";
 import { motion, useReducedMotion } from "framer-motion";
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
+
+const ROTATE_MS = 4200;
 
 export default function StartScreen({
   onStart,
@@ -16,11 +18,54 @@ export default function StartScreen({
 }) {
   const reduce = useReducedMotion();
   const blocked = micBlockMessage(permission);
-  const fade = reduce ? { duration: 0 } : { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const };
+  const [index, setIndex] = useState(0);
+  const [shown, setShown] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const dragX = useRef<number | null>(null);
+  const cup = HERO_CUPS[shown] ?? HERO_CUPS[0];
+
+  useEffect(() => {
+    if (reduce) return;
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % HERO_CUPS.length);
+    }, ROTATE_MS);
+    return () => window.clearInterval(timer);
+  }, [reduce, index]);
+
+  useEffect(() => {
+    if (shown === index) return;
+    if (reduce) {
+      setShown(index);
+      setVisible(true);
+      return;
+    }
+    setVisible(false);
+    const timer = window.setTimeout(() => {
+      setShown(index);
+      setVisible(true);
+    }, 240);
+    return () => window.clearTimeout(timer);
+  }, [index, reduce, shown]);
+
+  function step(direction: 1 | -1) {
+    setIndex((current) => (current + (direction === 1 ? 1 : HERO_CUPS.length - 1)) % HERO_CUPS.length);
+  }
+
+  function onPointerDown(event: PointerEvent<HTMLDivElement>) {
+    dragX.current = event.clientX;
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (dragX.current == null) return;
+    const delta = event.clientX - dragX.current;
+    dragX.current = null;
+    if (Math.abs(delta) < 42) return;
+    step(delta < 0 ? 1 : -1);
+  }
 
   return (
     <motion.div
-      className="welcome-screen pointer-events-auto absolute inset-0 z-[48] flex items-center justify-center px-6"
+      className="welcome-screen pointer-events-auto absolute inset-0 z-[48]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="start-title"
@@ -29,93 +74,124 @@ export default function StartScreen({
       exit={{ opacity: 0 }}
       transition={reduce ? { duration: 0 } : { duration: 0.28 }}
     >
-      <div className="welcome-glow" aria-hidden />
-      <div className="start-floats" data-floats aria-hidden>
-        {START_GLASSES.map((glass) => (
-          <FloatCup key={glass.id} glass={glass} />
-        ))}
-      </div>
-      <motion.div
-        className="relative z-10 flex w-full max-w-[760px] flex-col items-center text-center"
-        initial={reduce ? false : { opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={fade}
-      >
-        <p className="text-[13px] font-medium tracking-[0.32em] text-[#c4a574] uppercase">Voice counter</p>
-        <h1
-          id="start-title"
-          className="mt-6 text-[clamp(64px,7.2vw,108px)] leading-[0.92] font-medium tracking-[-0.045em] text-[#f4efe6]"
-        >
-          What are you drinking?
-        </h1>
-        <p className="mt-6 text-[clamp(18px,1.6vw,22px)] text-[#d9c7ae]">Say the drink.</p>
-        {blocked && (
-          <p role="alert" data-mic-block className="mt-6 max-w-[520px] text-[18px] leading-relaxed text-[#f4efe6]">
-            {blocked}
+      <img src={HERO_BG} alt="" className="hero-bg" />
+      <div className="hero-shade" aria-hidden />
+      <div className="hero-layout">
+        <header className="hero-nav">
+          <a className="hero-brand" href="#start-title">
+            <img src={BRAND_LOGO} alt="Flash Agentic" width={48} height={48} />
+          </a>
+          <nav className="hero-links" aria-label="Welcome">
+            <a href="#landing-menu">Menu</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#about">About</a>
+          </nav>
+        </header>
+
+        <div className="hero-copy">
+          <p className="hero-eyebrow">Flash Agentic is...</p>
+          <h1 id="start-title" className="hero-title">
+            <span>
+              Just say <strong>what</strong>
+            </span>
+            <span>
+              you <strong>want</strong>
+            </span>
+          </h1>
+          <p id="how-it-works" className="sr-only">
+            Say the drink. The counter builds the order while you talk, then you confirm by voice.
           </p>
-        )}
-        <button
-          type="button"
-          data-start
-          autoFocus
-          aria-busy={starting || undefined}
-          aria-label={starting ? "Starting microphone" : "Start listening"}
-          onClick={onStart}
-          className={`sketch-start${starting ? " is-arming" : ""}`}
-        >
-          <svg className="sketch-svg" viewBox="0 0 140 140" aria-hidden>
-            <g className="sketch-back">
-              <path
-                className="sketch-stroke"
-                d="M72 16 C 102 12, 124 38, 122 70 C 126 102, 100 126, 68 122 C 38 126, 16 102, 18 70 C 14 38, 42 12, 72 16 Z"
-              />
-            </g>
-            <path
-              className="sketch-stroke sketch-front"
-              pathLength="100"
-              d="M70 11 C 106 7, 131 36, 128 70 C 132 106, 104 131, 70 128 C 34 132, 9 104, 12 70 C 8 34, 36 8, 70 11 Z"
+          {blocked && (
+            <p role="alert" data-mic-block className="hero-block">
+              {blocked}
+            </p>
+          )}
+          <div className="hero-actions">
+            <button
+              type="button"
+              data-start
+              autoFocus
+              aria-busy={starting || undefined}
+              aria-label={starting ? "Starting microphone" : "Start listening"}
+              onClick={onStart}
+              className="hero-primary"
+            >
+              <MicIcon />
+              <span>{starting ? "Starting" : "Start Ordering"}</span>
+            </button>
+            <button type="button" className="hero-secondary" onClick={onStart}>
+              <WaveIcon />
+              <span>No Buttons. Just Voice</span>
+            </button>
+          </div>
+          <p className="hero-keys">Enter or Space</p>
+          <ul id="landing-menu" className="hero-tiles">
+            {LANDING_TILES.map((tile) => (
+              <li key={tile.id}>
+                <img src={tile.image} alt={tile.name} draggable={false} />
+              </li>
+            ))}
+          </ul>
+          <p id="about" className="sr-only">
+            Flash Agentic is a voice coffee counter. A lightning bolt is the mark.
+          </p>
+        </div>
+
+        <aside className="hero-panel" aria-hidden>
+          <div className="hero-words">
+            <span className="is-outline">{cup.label}</span>
+            <span className="is-solid">{cup.label}</span>
+          </div>
+          <div
+            className={reduce ? "hero-stage is-still" : "hero-stage"}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            onPointerCancel={() => {
+              dragX.current = null;
+            }}
+          >
+            <img
+              key={cup.id}
+              src={cup.image}
+              alt=""
+              draggable={false}
+              className={visible ? "hero-cup-photo is-on" : "hero-cup-photo"}
             />
-          </svg>
-          <span>{starting ? "Starting" : "Start"}</span>
-        </button>
-        <p className="mt-4 text-[13px] tracking-[0.14em] text-[#a89078] uppercase">Enter or Space</p>
-      </motion.div>
+          </div>
+          <span className="hero-heart">
+            <HeartIcon />
+          </span>
+        </aside>
+      </div>
     </motion.div>
   );
 }
 
-function FloatCup({ glass }: { glass: StartGlass }) {
+function MicIcon() {
   return (
-    <div
-      data-float={glass.corner}
-      className="float-cup"
-      style={
-        {
-          top: glass.top != null ? `${glass.top}%` : undefined,
-          bottom: glass.bottom != null ? `${glass.bottom}%` : undefined,
-          left: glass.left != null ? `${glass.left}%` : undefined,
-          right: glass.right != null ? `${glass.right}%` : undefined,
-          "--size": `${glass.size}px`,
-          "--tilt": `${glass.tilt}deg`,
-          "--dx": `${glass.dx}px`,
-          "--dy": `${glass.dy}px`,
-          "--spin": `${glass.spin}deg`,
-          "--from-x": `${glass.fromX}px`,
-          "--from-y": `${glass.fromY}px`,
-          "--dur": `${glass.dur}s`,
-          "--delay": `${glass.delay}s`,
-          "--fade": String(glass.fade),
-        } as CSSProperties
-      }
-    >
-      <img src={glass.image} alt="" draggable={false} className="cup-image" />
-      {glass.steam && (
-        <svg className="cup-steam" viewBox="0 0 40 28" aria-hidden>
-          <path d="M12 26c2-6 2-8 0-14" />
-          <path d="M20 26c2-7 2-9 0-16" />
-          <path d="M28 26c2-5 2-7 0-12" />
-        </svg>
-      )}
-    </div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M6.5 11.5a5.5 5.5 0 0 0 11 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M12 17v3.2M9 20.2h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function WaveIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 20s-7-4.4-7-9.1C5 8 6.8 6.2 9.1 6.2c1.3 0 2.4.6 2.9 1.6.5-1 1.6-1.6 2.9-1.6 2.3 0 4.1 1.8 4.1 4.7C19 15.6 12 20 12 20Z"
+        fill="#ff4d6a"
+      />
+    </svg>
   );
 }
